@@ -14,6 +14,7 @@ import argparse
 from rich.pretty import pprint
 
 import keypoint_moseq as kpm
+from keypoint_moseq.project.fit_utils import find_sleap_paths, load_coords_from_expts, find_model_name_in_project_dir
 
 # Housekeeping
 import jax
@@ -39,58 +40,18 @@ def create_cli_parser():
     return parser
 
 
-def find_sleap_paths(video_dir):
-    """Search recursively within video_dir to find paths to sleap-tracked expts. and files."""
-    
-    print(f"Searching for paths within {video_dir}")
-    sleap_paths = kpm.project.get_sleap_paths(video_dir)
-    print(f"Found {len(sleap_paths)} expts.")
-    return sleap_paths
-
-
-def load_coords_from_expts(sleap_paths, project_dir, use_instance):
-    """
-    Load keypoint tracked data from sleap_paths using config info from project_dir.
-    """
-    config = kpm.load_config(project_dir)
-    coordinates = kpm.load_keypoints_from_slp_list(sleap_paths,
-                                                   use_instance)
-    print("Printing summary of data loaded.")
-    for k,v in coordinates.items():
-        print(f"Session {k}")
-        print(f"Data: {v.shape}")
-    return coordinates
-
-
 def apply_kpms_model(coordinates, project_dir, name):
     """Load checkpoint, read config, apply model."""
     checkpoint = kpm.load_checkpoint(project_dir, name)
     config = kpm.load_config(project_dir)
     confidences = None
-    results = kpm.apply_model(coordinates=coordinates, confidences=confidences, 
-                            project_dir=project_dir, **checkpoint, **config,
-                            plot_every_n_iters=0, use_saved_states=False,
-                            pca=kpm.load_pca(project_dir))
+    kpm.apply_model(coordinates=coordinates, confidences=confidences,
+                    project_dir=project_dir, **checkpoint, **config,
+                    plot_every_n_iters=0, use_saved_states=False,
+                    pca=kpm.load_pca(project_dir))
 
 
-def find_model_name_in_project_dir(project_dir):
-    """Find the model_name in the project_dir.
-    """
-    # Find model_name in project_dir
-    model_name = None
-    for name in os.listdir(project_dir):
-        if os.path.isdir(os.path.join(project_dir, name)):
-            if os.path.exists(os.path.join(project_dir, name, "checkpoint.p")):
-                model_name = name
-                break
-    if model_name is None:
-        # raise ValueError("No models found in project_dir.")
-        print(f"No models found in {project_dir}.")
-    return model_name
-
-
-
-def main():
+if __name__ == "__main__":
     # Parse arguments
     parser = create_cli_parser()
     args = parser.parse_args()
@@ -103,19 +64,16 @@ def main():
     project_dir = args.project_dir
     name = args.model_name
     use_instance = args.use_instance
-    
+
     # Setup project
     sleap_paths = find_sleap_paths(video_dir)
 
     # Read data
     coordinates = load_coords_from_expts(sleap_paths,
-                                            project_dir,
-                                            use_instance)
+                                         project_dir,
+                                         use_instance)
     if name is None:
         name = find_model_name_in_project_dir(project_dir)
 
     # Apply model
     apply_kpms_model(coordinates, project_dir, name)
-
-if __name__ == "__main__":
-    main()

@@ -19,14 +19,12 @@ from pathlib import Path
 import argparse
 from rich.pretty import pprint
 
-
 # Define hyperparam sweep configuration
-hyper = {"nlags": [2, 3, 4, 5, 6, 7, 8, 9, 10],
-        }
+hyper = {"nlags": [3, 5], }
 
 # hyper = {"latent_dimension": list(np.arange(2, 22, 2, dtype=int))}
 
-# hyper = {"kappa": list(np.logspace(2, 12, num=6, base=10,dtype=float)),
+# hyper = {"kappa": list(np.logspace(2, 12, num=6, base=10, dtype=float)),
 #         "nlags": [1, 3, 5, 10],
 #         "alpha": [0.1, 0.5, 1, 5, 10, 50],
 #         "latent_dimension": list(np.arange(2, 22, 2, dtype=int))}
@@ -63,8 +61,7 @@ def print_hyper_config(hyper):
         print(f"Datatype: {type(hyper[key])}")
 
 
-
-def create_folders_for_hyperparam(video_dir, hyper, save_data_to=None):
+def create_folders_for_hyperparam(video_dir, hyper, save_data_to):
     """
     Given a base directory where results will be saved, 
     create a folder for each hyperparameter sweep.
@@ -82,7 +79,8 @@ def create_folders_for_hyperparam(video_dir, hyper, save_data_to=None):
     """
     # Create base folder to save results
     if save_data_to is None:
-        save_data_to = r"/scratch/gpfs/shruthi/pair_wt_gold/fitting/"
+        raise Exception('save_data_to cannot be None')
+
     base_date_string = str(datetime.now().strftime('%Y_%m_%d-%H_%M_%S'))
     base_folder = os.path.join(save_data_to, base_date_string)
     print(f"Saving hyperparam sweep runs to: {base_folder}")
@@ -148,7 +146,7 @@ def create_cli_parser():
     parser.add_argument('-s',
                         '--save_data_to', 
                         type=str, 
-                        default=None,
+                        required=True,
                         help='Directory where results will be saved.')
     
     return parser

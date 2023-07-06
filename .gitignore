@@ -139,3 +139,5 @@ logs/
 .idea/**
 .vscode
 .vscode/**
+
+**/*.sh

@@ -1,14 +1,15 @@
 # Usage: bash fit_hyperparams.sh
 
-JOB_SCRIPT="/home/shruthi/kpms/keypoint_moseq/run/hyperparams/fit_models_array.sh"
-WORK_DIR="/home/shruthi/fit_pair/2023_04_21-20_04_07" # Path to the directory containing the nested hyperparams directory
-VID_DIR="/scratch/gpfs/shruthi/pair_wt_gold/190612_110405_wt_16276625_rig2.1/"
+JOB_SCRIPT="/projects/MMURTHY/usingla/keypointMoSeq/keypoint_moseq/run/hyperparams/fit_hyperparams_array.sh"
+NAME="2023_07_04-23_19_13"
+ARRAY_ARGS_FILE="/scratch/gpfs/us3519/fit_pair/project/${NAME}/array_args.txt" # Path to the directory containing the nested hyperparams directory
+VID_DIR="/tigress/MMURTHY/usingla/sampledata9/"
+USE_INSTANCE=1
 
-
-ARRAY_ARGS_FILE="$WORK_DIR/array_args.txt"
+echo $ARRAY_ARGS_FILE
 
 NUM_ARRAY_JOBS="$(cat $ARRAY_ARGS_FILE | wc -l)"
 
 echo "Submitting $NUM_ARRAY_JOBS jobs"
 
-sbatch -a 1-"$NUM_ARRAY_JOBS" "$JOB_SCRIPT" "$ARRAY_ARGS_FILE" "$VID_DIR"
+sbatch -a 1-"$NUM_ARRAY_JOBS" "$JOB_SCRIPT" "$ARRAY_ARGS_FILE" "$VID_DIR" $USE_INSTANCE

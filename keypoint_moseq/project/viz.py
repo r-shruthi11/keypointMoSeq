@@ -70,7 +70,7 @@ def plot_pcs(pca, *, use_bodyparts, skeleton, keypoint_colormap,
         
 
 def plot_progress(model, data, history, iteration, path=None,
-                  project_dir=None, name=None, savefig=True,
+                  save_dir=None, name=None, savefig=True,
                   fig_size=None, seq_length=600, min_usage=.001, 
                   **kwargs):
     
@@ -131,11 +131,11 @@ def plot_progress(model, data, history, iteration, path=None,
     
     if savefig:
         if path is None:
-            assert name is not None and project_dir is not None, fill(
+            assert name is not None and save_dir is not None, fill(
                 'The ``savefig`` option requires either a ``path`` '
                 'or a ``name`` and ``project_dir``')
-            path = os.path.join(project_dir,name,f'fitting_progress_iter_{iteration}.pdf')
-        plt.savefig(path)  
+            path = os.path.join(save_dir,name,f'fitting_progress_iter_{iteration}.pdf')
+        plt.savefig(path)
     plt.show()
     
     

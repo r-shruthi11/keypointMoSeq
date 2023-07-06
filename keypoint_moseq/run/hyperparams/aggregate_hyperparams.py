@@ -10,8 +10,8 @@ import pandas as pd
 import seaborn as sns
 
 import keypoint_moseq as kpm
-from keypoint_moseq.run.hyperparams.fit_to_test_hyperparams import \
-    find_model_name_in_project_dir
+from keypoint_moseq.project.fit_utils import find_model_name_in_project_dir
+
 
 CONFIG_MAP_LIST = {"kappa": ["trans_hypparams", "kappa"],
                   "nlags": ["ar_hypparams", "nlags"],

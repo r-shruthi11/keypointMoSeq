@@ -4,7 +4,8 @@
 # salloc --nodes=1 --ntasks=1 --mem=4G --time=00:30:00 --gres=gpu:1
 
 # Activate conda environment
-source activate keypoint_moseq_sleap
+module load anaconda3/2023.3
+conda activate /tigress/MMURTHY/usingla/envs/kpms_sleap
 
 # Test arguments
 SAVE_DIR="/scratch/gpfs/shruthi/pair_wt_gold/fitting/"

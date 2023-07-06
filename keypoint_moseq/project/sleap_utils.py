@@ -198,9 +198,8 @@ def setup_project_from_slp(project_dir, sample_slp_file=None,
         slp_options = sleap_to_config(sample_slp_file)
                 
         options = {**slp_options, **options}
-    
-    if not os.path.exists(project_dir):
-        os.makedirs(project_dir)
+
+    os.makedirs(project_dir, exist_ok=True)
     generate_config(project_dir, **options)
 
 
@@ -220,5 +219,4 @@ def find_matching_sleap_videos(keys, video_dir, as_dict=False):
         video_paths.append(path_to_vid)
     if as_dict: return dict(zip(sorted(keys),video_paths))
     else: return video_paths
-
 
