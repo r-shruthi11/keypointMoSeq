@@ -12,6 +12,7 @@ from keypoint_moseq.project.viz import plot_progress
 from keypoint_moseq.project.io import save_checkpoint
 from keypoint_moseq.run.constants import EXPT_BATCH_LEN
 from jax_moseq.models.keypoint_slds import model_likelihood
+from scipy.stats import multivariate_normal
 
 
 def find_sleap_paths(video_dir):
@@ -62,7 +63,24 @@ def load_data_from_expts(sleap_paths, project_dir, use_instance):
     return data, batch_info
 
 
-def run_fit_PCA(data, project_dir, cv_split_save_dir):
+def fit_mvn(data):
+    """
+    Multivariate gaussian model for the pose prediction to get the lower bound
+    """
+
+    n_features = data['Y'].shape[-2]
+    d = data['Y'].shape[-1]
+
+    x = data['Y'][data['mask'] > 0]
+    x = x.reshape((-1, n_features * d))
+
+    p = multivariate_normal(mean=np.mean(x, axis=0), cov=np.cov(x.T)).pdf(x)
+    p = np.maximum(p, 1e-100)
+    log_Y_given_mvn = np.sum(np.log(p))
+    return log_Y_given_mvn
+
+
+def run_fit_PCA(data, project_dir, save_dir):
     """
     Fit PCA to data using parameters defined in config which is read from project_dir.
     Save PCA to project_dir.
@@ -70,7 +88,7 @@ def run_fit_PCA(data, project_dir, cv_split_save_dir):
     """
     config = kpm.load_config(project_dir)
     pca = kpm.fit_pca(**data, **config, conf=None)
-    kpm.save_pca(pca, cv_split_save_dir)
+    kpm.save_pca(pca, save_dir)
     kpm.print_dims_to_explain_variance(pca, 0.9)
     # Visualization might cause CL calls to crash
     # so comment and run these lines locally
@@ -78,18 +96,18 @@ def run_fit_PCA(data, project_dir, cv_split_save_dir):
     # kpm.plot_pcs(pca, project_dir=project_dir, **config)
 
 
-def fit_keypoint_ARHMM(project_dir, cv_split_save_dir, data, batch_info, name=None, return_checkpoint_path=False):
+def fit_keypoint_ARHMM(project_dir, save_dir, data, batch_info, name=None, return_checkpoint_path=False):
     """
     Load PCA from project_dir and initialize the model.
     Fit AR-HMM
     """
     config = kpm.load_config(project_dir)
-    pca = kpm.load_pca(cv_split_save_dir)
+    pca = kpm.load_pca(save_dir)
     model = kpm.initialize_model(pca=pca, **data, **config)
     # TODO: WAF to visualize initialized parameters
 
     model, history, name = fit_model(model, data, batch_info, batch=-1, ar_only=True,
-                                   num_iters=50, save_dir=cv_split_save_dir,
+                                   num_iters=50, save_dir=save_dir,
                                    plot_every_n_iters=0, name=name)
     # TODO: WAF to visualize AR-HMM fit parameters
     return model, history, name

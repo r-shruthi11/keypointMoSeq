@@ -1,5 +1,6 @@
 #!/bin/bash
-#SBATCH --time=20:00:00
+#SBATCH --job-name=single-split
+#SBATCH --time=71:00:00
 #SBATCH --mem=64GB
 #SBATCH --cpus-per-task=1
 #SBATCH --gres=gpu:1

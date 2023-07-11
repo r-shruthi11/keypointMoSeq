@@ -20,6 +20,8 @@ from keypoint_moseq.project.fit_utils import find_sleap_paths
 print(jax.devices())
 print(jax.__version__)
 
+print(os.environ)
+
 
 def create_cli_parser():
     """Create a command line interface parser."""
@@ -141,4 +143,4 @@ if __name__ == "__main__":
                                                 hyper,
                                                 use_bodyparts)
 
-    model_name, llh = train(sleap_paths, project_dir, use_instance)
+    model_name = train(sleap_paths, save_results_to, save_results_to, use_instance)

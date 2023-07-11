@@ -7,27 +7,9 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.stats import multivariate_normal
 
 from keypoint_moseq.project.io import load_checkpoint, save_llh
-from keypoint_moseq.project.fit_utils import calculate_ll
-
-
-def fit_mvn(data):
-    """
-    Multivariate gaussian model for the pose prediction to get the lower bound
-    """
-
-    n_features = data['Y'].shape[-2]
-    d = data['Y'].shape[-1]
-
-    x = data['Y'][data['mask'] > 0]
-    x = x.reshape((-1, n_features * d))
-
-    p = multivariate_normal(mean=np.mean(x, axis=0), cov=np.cov(x.T)).pdf(x)
-    p = np.maximum(p, 1e-100)
-    log_Y_given_mvn = np.sum(np.log(p))
-    return log_Y_given_mvn
+from keypoint_moseq.project.fit_utils import calculate_ll, fit_mvn
 
 
 def get_logll_from_checkpoint(ckp):
@@ -79,7 +61,7 @@ def process_checkpoints(project_dir):
                     b = ckp['current_batch']
                     b_log_Y_and_model, b_log_Y_given_model, b_n_samples, b_log_Y_given_mvn = get_logll_from_checkpoint(ckp)
                     b_n_iters = list(ckp['history'].keys())
-                    b_bits = ((np.array(b_log_Y_given_model) - b_log_Y_given_mvn) / b_n_samples).tolist()
+                    b_bits = np.log2(np.exp((np.array(b_log_Y_given_model) - b_log_Y_given_mvn) / b_n_samples)).tolist()
 
                     log_Y_and_model.append(b_log_Y_and_model)
                     log_Y_given_model.append(b_log_Y_given_model)
@@ -96,29 +78,30 @@ def process_checkpoints(project_dir):
 
 if __name__ == '__main__':
 
-    project_dir = '/scratch/gpfs/us3519/fit_pair/project/2023_07_05-02_33_31/'
+    project_dir = '/scratch/gpfs/us3519/fit_pair/project/2023_07_05-02_29_02/'
     llh_df = process_checkpoints(project_dir)
     # save_llh(llh_df, project_dir)
 
     # Plot data LL, and bits across CV train splits
-    run_nlags_0_df = llh_df[llh_df['hyp'] == 'nlags'][llh_df['hyp_idx'] == '0'].sort_values(['cv_idx', 'batch']).groupby(['cv_idx'])
+    run_nlags_0_df = llh_df[llh_df['hyp'] == 'nlags'][llh_df['hyp_idx'] == '0'][llh_df['cv_idx'] < 'cv4'].sort_values(['cv_idx', 'batch']).groupby(['cv_idx'])
 
     # # plot log_Y_given_model, non-normalized so probably doesn't make sense
     # data_ll = np.array(run_nlags_0_df.agg({'log_Y_given_model': 'sum'})['log_Y_given_model'].tolist()).Tq
     # print(data_ll)
     # plt.plot(data_ll, linewidth=1)
     # plt.errorbar(np.arange(len(data_ll)), np.mean(data_ll, axis=1), yerr=np.std(data_ll, axis=1), fmt='-o')
-    # plt.xlabel('iterations')
+    # plt.xlabel('training iterations')
     # plt.ylabel('log(Y|slds)')
     # plt.title('log(Y|slds) for CV splits')
     #
     # # plot bits/frame normalized w.r.t mvn
-    # bits_ = np.array(run_nlags_0_df.agg({'bits':'sum'})['bits'].tolist()).T
-    # print(bits_)
-    # plt.plot(bits_)
-    # plt.xlabel('iterations')
-    # plt.ylabel('information w.r.t. mvn')
-    # plt.title('bits/frame for CV splits')
+    bits_ = np.array(run_nlags_0_df.agg({'bits':'sum'})['bits'].tolist()).T
+    print(bits_)
+    plt.plot(bits_)
+    plt.xlabel('training iterations')
+    plt.ylabel('information w.r.t. mvn')
+    plt.title('bits/frame for CV splits')
+    plt.savefig('bits.png')
     #
     # plt.show()
 

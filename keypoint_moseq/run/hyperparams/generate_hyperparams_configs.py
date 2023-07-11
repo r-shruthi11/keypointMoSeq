@@ -20,7 +20,7 @@ import argparse
 from rich.pretty import pprint
 
 # Define hyperparam sweep configuration
-hyper = {"nlags": [3, 5], }
+# hyper = {"nlags": [3, 5], }
 
 # hyper = {"latent_dimension": list(np.arange(2, 22, 2, dtype=int))}
 
@@ -41,6 +41,11 @@ use_bodyparts = ['thorax', 'abdomen', 'wingL',
                  'midlegL4', 'midlegR4', 'hindlegL4',
                  'hindlegR4']
 
+hyper = {"kappa": [1e6, 1e8, 1e10, 1e12],
+        "nlags": [3],
+        "alpha": [10, 100, 1000],
+         "gamma": [10, 1000, 10000],
+        "latent_dimension": [2*(len(use_bodyparts) - 2)]}
 
 
 def print_hyper_config(hyper):
