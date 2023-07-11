@@ -51,6 +51,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# SLURM scripts
+*.sh
+**/*.sh
+
 # Translations
 *.mo
 *.pot
